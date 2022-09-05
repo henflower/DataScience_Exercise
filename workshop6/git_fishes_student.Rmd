@@ -123,9 +123,9 @@ Second, drop out irrelevant columns and check that there are no spelling issues 
 
 ```{r summaryTab}
 # Drop irrelevant columns
-datase = data %>% select(-comment,-loc, -animal_id)
+datase <- data %>% select(-comment,-loc, -animal_id)
 # Check spelling in species and treatment but also generate a summary table
-datast = datase %>% filter(!is.na(species)) %>% filter(!is.na(treatment)) %>% 
+datast <- datase %>% filter(!is.na(species)) %>% filter(!is.na(treatment)) %>% 
    group_by(species,treatment) %>% summarise(across(where(is.numeric),list(mean = mean,sd = sd))) %>% 
    ungroup() %>% pivot_longer(cols = !c(species,treatment),names_to = c("variable","statistic"),
                names_pattern = "(.*)_(.*)",values_to = "value")
