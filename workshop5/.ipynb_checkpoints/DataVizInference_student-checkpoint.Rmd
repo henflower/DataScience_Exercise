@@ -1,5 +1,5 @@
 ---
-title: An R Markdown document converted from "assignment2/ass2.ipynb"
+title: DataVizInference_student
 output: html_document
 ---
 
