@@ -205,6 +205,7 @@ permutation <- sample(100,replace = F)
 permuted_group_data <- new_group_data
 permuted_group_data$ID <- permuted_group_data$ID[permutation]
 head(permuted_group_data)
+diff(by(permuted_group_data$value, permuted_group_data$ID, mean))
 ```
 
 Now pretend that this is our real data and repeat the t-test from before.

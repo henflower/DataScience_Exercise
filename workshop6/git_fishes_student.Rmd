@@ -116,14 +116,13 @@ First, write some code below to remove missing data
 ```{r rmMiss}
 # Code to removing missing data from the `OA_activitydat_20190302_BIOL3207.csv` data frame. 
 data = data %>% drop_na() %>% select(-...1)
-
 ```
 
 Second, drop out irrelevant columns and check that there are no spelling issues in `species` and `treatment`. Create a table of summary data that includes: 1) the mean, 2) the standard error and 3) the sample sizes of unique fish across ALL six fish species for each treatment. This will also help you detect any spelling errors. You can use the R package [`flextable`](https://ardata-fr.github.io/flextable-book/) to print out the results in a nice neat format! If you haven't heard about `flextable` spend 10 or so minutes having a look at it's functionality. It's incredible! You'll use this for tables throughout.
 
 ```{r summaryTab}
 # Drop irrelevant columns
-datase <- data %>% select(-comment,-loc, -animal_id)
+datase <- data %>% select(-comment, -animal_id)
 # Check spelling in species and treatment but also generate a summary table
 datast <- datase %>% filter(!is.na(species)) %>% filter(!is.na(treatment)) %>% 
    group_by(species,treatment) %>% summarise(across(where(is.numeric),list(mean = mean,sd = sd))) %>% 
@@ -139,7 +138,8 @@ flextable(datast) %>% bold(part = "header") %>% add_footer_lines("The statistic 
 > **Question 5**: The new version of your Rmarkdown file should now be up on *GitHub*. In the browser window click on your most recent commit. Have a look at the file versioning system. You will notice two files side-by-side. Describe what you notice is being presented online. What do the red and green highlights mean?
 
 ```{r answer5, echo=TRUE, eval=FALSE}
-## Write your answer here....remember to use '#" in front of your text.
+# You can see the comparison between the local content and the content on Github,
+#where green represents the added content, and red represents the modified and deleted content.
 ```
 
 # **Task 5**
@@ -150,10 +150,8 @@ Ignoring figures can be important because they take up quite a lot of space in y
 
 ```{r prettyfig, fig.align="center", fig.cap="add a legend here"}
 # ggplot figure showing mean activity for each treatment (Control, OA) for each species.
-ggplot(data = datase,aes(x = treatment, y = sl)) + geom_boxplot() + facet_wrap(~species, nrow = 2)
-ggplot(data = datase,aes(x = treatment, y = size)) + geom_count() + facet_wrap(~species, nrow = 2)
-ggplot(data = datase,aes(x = treatment, y = activity)) + geom_boxplot() + facet_wrap(~species, nrow = 2)
-
+datase %>% ggplot(aes(x = treatment, y = activity)) + geom_boxplot(aes(fill = loc)) + facet_wrap(~species) 
+ggsave("./.gitignore/output/figures/stat_all.png")
 ```
 
 **Stretch Task**: The Clark et al. 2020 paper plots some pretty pictures on their figures. You have access to a folder called "pics/". Add the pics of the difference species from the "pics/" folder to your new plot. Explore the function `annotation_raster()` which might help you achieve this goal.
@@ -163,11 +161,13 @@ Note the code chunk used to make the figure. It has a `fig.cap` argument. That m
 Now that you have the figure you may also want to write / save it as a separate file. Use `ggsave` function to save the figure(s) to your new `output/figures/`:
 
 ```{r savefig}
-# Use ggsave to save the figure
-t = readPNG("./pics/acantho.png")
-ggplot(data = datase,aes(x = treatment, y = activity, color = species)) + 
-   geom_boxplot() + annotation_raster(t,xmin = 2, xmax = -2, ymin = 2, ymax = 20)
-
+#Use ggsave to save the figure
+for (i in unique(datase$species)){
+   fish = readPNG(str_c("./pics/",i,".png"))
+   datase[which(datase$species == i),] %>% ggplot(aes(x = treatment, y = activity))+ ylim(0,70) +
+   annotation_raster(fish, xmin = 1.8, xmax = 2.5, ymin = 60, ymax = 70) + geom_boxplot(aes(fill = loc)) 
+   ggsave(str_c("./.gitignore/output/figures/stat_",i,".png"))
+}
 ```
 
 > **Question 6**: Given that you have added `output/figures/` to your `.gitignore` file describe what you notice about what you see in *GitHub Desktop*.
@@ -182,6 +182,7 @@ Last question for this task. I promise! It's important to think very carefully a
 
 ```{r answer6}
 ## Add your answer here
+
 ```
 
 # **Task 6**
@@ -230,10 +231,18 @@ Here, run some statistical tests to determine, for each species, whether the con
 
 ```{r stats, echo=TRUE, eval=TRUE}
 # Add your code here
+stat_sl <- datase %>% group_by(species) %>% 
+   summarise(broom::tidy(t.test(sl~treatment, data = cur_data())), .groups = "keep") %>% 
+   select(species,statistic,p.value,conf.low,conf.high) %>% rename(t_value = statistic)
+stat_activity <- datase %>% group_by(species) %>% 
+   summarise(broom::tidy(t.test(activity~treatment, data = cur_data())), .groups = "keep") %>% 
+   select(species,statistic,p.value,conf.low,conf.high) %>% rename(t_value = statistic)
 ```
 
 ```{r table1, echo=TRUE, eval=TRUE, tab.cap="write a caption here"}
-# Using the resulting object created above, which should be a table with all the summary statistics, t, df and p-value for each species create a table. Note that there is a tab.cap argument in the chunk arguments. Write a caption here. 
+# Using the resulting object created above, which should be a table with all the summary statistics, t, df and p-value for each species create a table. Note that there is a tab.cap argument in the chunk arguments. Write a caption here.
+stat_sl
+stat_activity
 ```
 
 Now that you have a table, you can reference it within a document. For example, you can make a call to Table \@ref(tab:table1) by referring to the name of the code chunk. When you knit the html it will create a hyperlink to your table and insert a legend above the table for you. How cool is that!?
@@ -256,8 +265,24 @@ Re-analyse the data for a single species using permutations instead of a t-test.
 
 > **Stretch Task**: If you really want a challenge try doing permutation tests for each species. Again, loops, functions or tidyverse (or even combinations might help).
 
-```{r stretch2, echo=TRUE, eval=FALSE}
+```{r stretch2, echo=TRUE, eval=TRUE, tags=c()}
 # Add your code here.
+n_rep <- 10000
+permutation_result <- tibble()
+for (group in unique(datase$species)){
+   samp_dist <- rep(0,n_rep)
+   selected_data <- datase[which(datase$species == group),] 
+   for (i in 1:n_rep){
+      samp_dist[i] <- selected_data %>% mutate(treatment = treatment[sample(row_number())]) %>%
+         t.test(activity ~ treatment, data = .) %>% .$statistic
+   }
+   t_value <- datase[which(datase$species == group),] %>% t.test(activity ~ treatment, data = .,var.equal=T) %>% .$statistic
+   permutation_pvalue <- sum(samp_dist>= t_value)/n_rep
+   permutation_result <- rbind(permutation_result, tibble(species = group,P_value = permutation_pvalue))
+}
+colnames(permutation_result) <- c("species","Per-P.value")
+stat_result <- full_join(permutation_result，stat_activity)
+stat_result
 ```
 
 Below. Add a few sentences for the species (or multiple species) you talked about above to describe the permutation results:
