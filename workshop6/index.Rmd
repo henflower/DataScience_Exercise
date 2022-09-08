@@ -10,12 +10,13 @@ output:
     toc_depth: 6
     toc_float: yes
 ---
-### **Question 9**: 
-Think about some things that can be improved in their code. List 3 things you think could be improved and provide a brief explanation for why.  
-**MY ANSWER**
-1. Using raw R script without rmarkdown makes it less readable between comments and code, and makes it impossible to run only parts of the code to make changes.
-2. Using the original R package for plotting results in a huge amount of code and very low readability, making it difficult to identify the plotting process and statistical methods.
-3. Doing a lot of statistical testing before plotting produces a lot of useless information. And because individual pieces of information aren't combined into tables, it's hard to compare different results.
+### **Question 9**:   
+Think about some things that can be improved in their code. List 3 things you think could be improved and provide a brief explanation for why.    
+**MY ANSWER**  
+
+1. Using raw R script without rmarkdown makes it less readable between comments and code, and makes it impossible to run only parts of the code to make changes.  
+2. Using the original R package for plotting results in a huge amount of code and very low readability, making it difficult to identify the plotting process and statistical methods.  
+3. Doing a lot of statistical testing before plotting produces a lot of useless information. And because individual pieces of information aren't combined into tables, it's hard to compare different results.  
 
 ### Reconstruct the OA picture
 ```{r}
@@ -542,8 +543,8 @@ pic <- function(selecting, notfirst = TRUE){
 pic("acantho", notfirst = FALSE) | pic('lemon') |pic('chromis') | pic('acantho') | pic('humbug') | pic('whitedams')
 ```
 
-### **Question 10**
-What are the challenges, if any, that you encounter in reproducing this figure?
-**MY ANSWER**
-1. On the native ggplot, it is difficult to achieve two groupings at the same time on one drawing and label them on different levels of labels, so I can only group them in sequence instead.
-2. The function of the `patchwork` package is too simple to set the specific width of each image, and it is not compatible with the image output size setting of rmarkdown, so it is difficult to draw images of the appropriate scale.
+### **Question 10**  
+What are the challenges, if any, that you encounter in reproducing this figure?  
+**MY ANSWER**  
+1. On the native ggplot, it is difficult to achieve two groupings at the same time on one drawing and label them on different levels of labels, so I can only group them in sequence instead.  
+2. The function of the `patchwork` package is too simple to set the specific width of each image, and it is not compatible with the image output size setting of rmarkdown, so it is difficult to draw images of the appropriate scale.   

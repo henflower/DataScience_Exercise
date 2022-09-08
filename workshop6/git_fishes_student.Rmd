@@ -293,4 +293,4 @@ After `r n_rep` permutation tests, the permutation test for the lemon group gave
 # **Task 10**
 
 This is a stretch task on the use of *GitHub* and the challenges (or maybe lack of challenges) of reproducing others' work. If you finish the above tasks, then, have a crack at this one. See the html for details.
-[My index.html]
+[My index.html](https://henflower.github.io/DataScience_Exercise/)
