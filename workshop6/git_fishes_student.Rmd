@@ -193,6 +193,11 @@ Now, lets create a new figure in the code block below that simplifies the one pr
 
 ```{r collabFig, echo=TRUE, eval=TRUE}
 # You want to make changes to your collaborators figure in Task 5. Maybe you want to create a figure that focuses only on three fish species instead of the 5. More specifically, chromis, lemon, and acantho. Add code here to revise their figure to do that.
+libaray(tidyverse)
+data = data %>% drop_na() %>% select(-...1)
+path <- "../data/OA_activitydat_20190302_BIOL3207.csv"
+data <- read_csv(path)
+data %>% ggplot(aes(x = treatment, y = activity)) + geom_boxplot(aes(fill = loc)) + facet_wrap(~species) 
 ```
 
 # **Task 7**
