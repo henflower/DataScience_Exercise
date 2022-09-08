@@ -1,6 +1,6 @@
 ---
 title: "Git, GitHub & Ocean Acidification"
-author: "<your name and u number>"
+author: "Jinghua Mu u7457359"
 date: "`r Sys.Date()`"
 output: 
   bookdown::html_document2:
@@ -21,11 +21,11 @@ options(digits=2)
 
 This tutorial will draw on the skills you have already learnt on data visualisation, data wrangling and NHST to analyse a data set on ocean acidification effects on fish behaviour. However, we'll do that in the context of some new workflows that adopt Git and GitHub.
 
-Use this Rmarkdown file as your template to complete the tasks outlined within the instructions. There are questions asked in the instructions and here in the RMarkdown file. Answer these as best as you can to document your steps and thinking. There are also a series of coding exercises.
-Throughout we are also going to learn a bit more about how to format Rmarkdown documents. So, pay close attention to the formatting. We're also going to make use of the `bookdown` package now to render your Rmarkdown because, well, it's quite elegant in many ways. Before you start the tasks install the following packages:
+Use this Rmarkdown file as your template to complete the tasks outlined within the instructions. There are questions asked in the instructions and here in the RMarkdown file. Answer these as best as you can to document your steps and thinking. There are also a series of coding exercises. Throughout we are also going to learn a bit more about how to format Rmarkdown documents. So, pay close attention to the formatting. We're also going to make use of the `bookdown` package now to render your Rmarkdown because, well, it's quite elegant in many ways. Before you start the tasks install the following packages:
+
 ```{r loadpacks, results='hide', message=FALSE}
-# Install a load of packages that we'll use. I'll show you a shortcut that I love to use. Try using the p_load function in the "pacman" package. p_load will execute both the install.packages and library commands in one shot so they only need to be used once to install pacman itself.
-install.packages("pacman", repos = "http://cran.us.r-project.org")
+# # Install a load of packages that we'll use. I'll show you a shortcut that I love to use. Try using the p_load function in the "pacman" package. p_load will execute both the install.packages and library commands in one shot so they only need to be used once to install pacman itself.
+# install.packages("pacman", repos = "http://cran.us.r-project.org")
 library(pacman)
 
 # Install bookdown for rendering because we'll need this. While we're at it, lets also install /load the tidyverse
@@ -88,7 +88,7 @@ Make sure you have added a `data/` folder to your working directory that you jus
 
 Write your answer in the code chunk below:
 
-```{r loaddata, eval=TURE, echo=TRUE}
+```{r loaddata, eval=TRUE, echo=TRUE}
 path <- "../data/OA_activitydat_20190302_BIOL3207.csv"
   
 data <- read_csv(path)
@@ -99,7 +99,7 @@ Let's say that you added a new data folder that was inside an output folder (i.e
 
 > **Question 4**: Using the `write_csv` function how would you write the path name to save this file to `output/data`?
 
-```{r write, eval=TURE, echo=TRUE}
+```{r write, eval=TRUE, echo=TRUE}
 
 path <- "./output/data/OA.csv"
 
@@ -151,7 +151,7 @@ Ignoring figures can be important because they take up quite a lot of space in y
 ```{r prettyfig, fig.align="center", fig.cap="add a legend here"}
 # ggplot figure showing mean activity for each treatment (Control, OA) for each species.
 datase %>% ggplot(aes(x = treatment, y = activity)) + geom_boxplot(aes(fill = loc)) + facet_wrap(~species) 
-ggsave("./.gitignore/output/figures/stat_all.png")
+ggsave("./output/figures/stat_all.png")
 ```
 
 **Stretch Task**: The Clark et al. 2020 paper plots some pretty pictures on their figures. You have access to a folder called "pics/". Add the pics of the difference species from the "pics/" folder to your new plot. Explore the function `annotation_raster()` which might help you achieve this goal.
@@ -166,7 +166,7 @@ for (i in unique(datase$species)){
    fish = readPNG(str_c("./pics/",i,".png"))
    datase[which(datase$species == i),] %>% ggplot(aes(x = treatment, y = activity))+ ylim(0,70) +
    annotation_raster(fish, xmin = 1.8, xmax = 2.5, ymin = 60, ymax = 70) + geom_boxplot(aes(fill = loc)) 
-   ggsave(str_c("./.gitignore/output/figures/stat_",i,".png"))
+    ggsave(str_c("./output/figures/stat_",i,".png"))
 }
 ```
 
@@ -231,17 +231,13 @@ Here, run some statistical tests to determine, for each species, whether the con
 
 ```{r stats, echo=TRUE, eval=TRUE}
 # Add your code here
-stat_sl <- datase %>% group_by(species) %>% 
-   summarise(broom::tidy(t.test(sl~treatment, data = cur_data())), .groups = "keep") %>% 
-   select(species,statistic,p.value,conf.low,conf.high) %>% rename(t_value = statistic)
 stat_activity <- datase %>% group_by(species) %>% 
-   summarise(broom::tidy(t.test(activity~treatment, data = cur_data())), .groups = "keep") %>% 
-   select(species,statistic,p.value,conf.low,conf.high) %>% rename(t_value = statistic)
+   summarise(broom::tidy(t.test(activity~treatment, data = cur_data())), .groups = "drop") %>% 
+   select(-parameter,-method,-alternative) %>% rename(t_value = statistic)
 ```
 
 ```{r table1, echo=TRUE, eval=TRUE, tab.cap="write a caption here"}
 # Using the resulting object created above, which should be a table with all the summary statistics, t, df and p-value for each species create a table. Note that there is a tab.cap argument in the chunk arguments. Write a caption here.
-stat_sl
 stat_activity
 ```
 
@@ -261,13 +257,15 @@ Now, using what you just learnt, describe what the null hypothesis being tested 
 
 **Write your answer here**
 
+Mean activity for `r "acantho"` in the control group was `r stat_activity[[which(stat_activity$species == "acantho"),"estimate"]]` (s / min) compared to the OA treatment group, which was `r stat_activity[[which(stat_activity$species == "acantho"),"estimate1"]]` (s / min). The difference between control and OA treatment means was `r stat_activity[[which(stat_activity$species == "acantho"),"estimate2"]]` (s / min) (95% CI: `r stat_activity[[which(stat_activity$species == "acantho"),"conf.low"]]` to `r stat_activity[[which(stat_activity$species == "acantho"),"conf.high"]]`).
+
 Re-analyse the data for a single species using permutations instead of a t-test. Do your results differ?
 
 > **Stretch Task**: If you really want a challenge try doing permutation tests for each species. Again, loops, functions or tidyverse (or even combinations might help).
 
 ```{r stretch2, echo=TRUE, eval=TRUE, tags=c()}
 # Add your code here.
-n_rep <- 10000
+n_rep <- 10
 permutation_result <- tibble()
 for (group in unique(datase$species)){
    samp_dist <- rep(0,n_rep)
@@ -281,7 +279,7 @@ for (group in unique(datase$species)){
    permutation_result <- rbind(permutation_result, tibble(species = group,P_value = permutation_pvalue))
 }
 colnames(permutation_result) <- c("species","Per-P.value")
-stat_result <- full_join(permutation_result，stat_activity)
+stat_result <- full_join(permutation_result, stat_activity)
 stat_result
 ```
 

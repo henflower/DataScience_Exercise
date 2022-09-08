@@ -1,0 +1,518 @@
+---
+title: "Git, GitHub & Ocean Acidification"
+author: "Jinghua Mu u7457359"
+date: "`r Sys.Date()`"
+output: 
+  bookdown::html_document2:
+    code_folding: show
+    number_sections: no
+    toc: yes
+    toc_depth: 6
+    toc_float: yes
+---
+
+
+```{r tags=c()}
+# R script for analyses of activity levels #
+
+#setwd('')
+
+# import data
+oaa <- read.csv('./OA_activitydat_20190302_BIOL3207.csv', header=TRUE)
+library(car)
+library(MASS)
+```
+
+```{r tags=c()}
+# format dataframe
+{
+oaa$comment <- as.character(oaa$comment)
+oaa$animal_id <- as.character(oaa$animal_id)
+oaa$animal_id <- as.integer(oaa$animal_id)
+oaa$loc <- as.character(oaa$loc)
+oaa$species <- as.character(oaa$species)
+oaa$species <- tolower(oaa$species)
+oaa$treatment <- relevel(as.factor(oaa$treatment), 'control')
+}
+
+#inspect data
+str(oaa)
+with(oaa, table(species, loc, size))
+```
+
+```{r tags=c()}
+# figure for paper
+library(scales)
+library(plotrix)
+
+# run one of these, then run from the brackets below
+
+  ymin <- 0
+  ymax <- 60
+  ylab <- seq(from=ymin, to=ymax, by=10)
+  
+  layout(matrix(c(1,1,1,1,1,1,1,2,2,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,6,6,6,6), 1, 29))
+  
+  par(mar=c(1, 0, 0, 1), bty='n', oma=c(7, 7, 1, 0))
+  
+  # acanthos
+  plot(NA, ylim=c(-3, ymax), xlim=c(0.4, 3.6), xaxt = 'n', yaxt = 'n')
+  
+  rect(-5000, -5000, 10000, 10000, col='grey92')
+  abline(v = c(0.8, 1.2, 1.8, 2.2, 2.8, 3.2), lwd=3.6, col='white')
+  abline(h = c(ylab), lwd=3.6, col='white')
+  
+  #2014
+  foo <- oaa[oaa$species=='acantho' & oaa$loc=='LIRS 2014',]
+  
+  points(activity ~ jitter(as.numeric(treatment)-0.2, 11), data=foo[foo$treatment=='control',], lwd=1, pch=18, col = 'grey40', cex=1.1)
+  points(activity ~ jitter(as.numeric(treatment)-0.8, 5.5), data=foo[foo$treatment=='CO2',], lwd=1, pch=16, col = 'dodgerblue2')
+  
+  axis(2, at = ylab, labels = ylab, lty=0, tick=NA, cex.axis=2, las=2)
+  mtext(expression(paste('Activity duration (', 's min'^'-1', ')')), side=2, line=3.25, cex=2)
+  
+  #mtext(expression(italic('A. polyacanthus')), cex=1.5, side=3, line=1)
+  
+  text(0.6, 58, labels = 'A', cex=3.4, font=2)
+  
+  points(x = 0.8, y = mean(foo[foo$treatment=='control',]$activity), cex=2.6, pch=16, col = 'grey40')
+  segments(x0 = 0.8, x1 = 0.8, 
+           y0 = mean(foo[foo$treatment=='control',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)), 
+           y1 = mean(foo[foo$treatment=='control',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)),
+           lwd = 4, col = 'grey40')
+  
+  segments(x0 = 0.65, x1 = 0.95, 
+           y0 = mean(foo[foo$treatment=='control',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)), 
+           y1 = mean(foo[foo$treatment=='control',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)),
+           lwd = 4, col = 'grey40')
+  
+  segments(x0 = 0.65, x1 = 0.95, 
+           y0 = mean(foo[foo$treatment=='control',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)), 
+           y1 = mean(foo[foo$treatment=='control',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)),
+           lwd = 4, col = 'grey40')
+  
+  segments(x0 = 1.2, x1 = 1.2, 
+           y0 = mean(foo[foo$treatment=='CO2',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)), 
+           y1 = mean(foo[foo$treatment=='CO2',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)),
+           lwd = 4, col = 'dodgerblue2')
+  
+  segments(x0 = 1.05, x1 = 1.35, 
+           y0 = mean(foo[foo$treatment=='CO2',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)), 
+           y1 = mean(foo[foo$treatment=='CO2',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)),
+           lwd = 4, col = 'dodgerblue2')
+  
+  segments(x0 = 1.05, x1 = 1.35, 
+           y0 = mean(foo[foo$treatment=='CO2',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)), 
+           y1 = mean(foo[foo$treatment=='CO2',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)),
+           lwd = 4, col = 'dodgerblue2')
+  points(x = 1.2, y = mean(foo[foo$treatment=='CO2',]$activity), cex=2.6, pch=21, col = 'dodgerblue2', bg='white', lwd=4)
+  
+  axis(1, at = c(0.8, 1.2), labels = c('Control', expression(paste('CO'[2]))), lty=0, tick=NA, cex.axis=2, las=2)
+  
+  
+  #2015
+  foo <- oaa[oaa$species=='acantho' & oaa$loc=='AIMS 2015',]
+  
+  points(activity ~ jitter(as.numeric(treatment)+0.8, 3), data=foo[foo$treatment=='control',], lwd=1, pch=18, col = 'grey40', cex=1.1)
+  points(activity ~ jitter(as.numeric(treatment)+0.2, 3), data=foo[foo$treatment=='CO2',], lwd=1, pch=16, col = 'dodgerblue2')
+  
+  points(x = 1.8, y = mean(foo[foo$treatment=='control',]$activity), cex=2.6, pch=16, col = 'grey40')
+  segments(x0 = 1.8, x1 = 1.8, 
+           y0 = mean(foo[foo$treatment=='control',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)), 
+           y1 = mean(foo[foo$treatment=='control',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)),
+           lwd = 4, col = 'grey40')
+  
+  segments(x0 = 1.65, x1 = 1.95, 
+           y0 = mean(foo[foo$treatment=='control',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)), 
+           y1 = mean(foo[foo$treatment=='control',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)),
+           lwd = 4, col = 'grey40')
+  
+  segments(x0 = 1.65, x1 = 1.95, 
+           y0 = mean(foo[foo$treatment=='control',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)), 
+           y1 = mean(foo[foo$treatment=='control',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)),
+           lwd = 4, col = 'grey40')
+  
+  
+  segments(x0 = 2.2, x1 = 2.2, 
+           y0 = mean(foo[foo$treatment=='CO2',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)), 
+           y1 = mean(foo[foo$treatment=='CO2',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)),
+           lwd = 4, col = 'dodgerblue2')
+  
+  segments(x0 = 2.05, x1 = 2.35, 
+           y0 = mean(foo[foo$treatment=='CO2',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)), 
+           y1 = mean(foo[foo$treatment=='CO2',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)),
+           lwd = 4, col = 'dodgerblue2')
+  
+  segments(x0 = 2.05, x1 = 2.35, 
+           y0 = mean(foo[foo$treatment=='CO2',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)), 
+           y1 = mean(foo[foo$treatment=='CO2',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)),
+           lwd = 4, col = 'dodgerblue2')
+  points(x = 2.2, y = mean(foo[foo$treatment=='CO2',]$activity), cex=2.6, pch=21, col = 'dodgerblue2', bg='white', lwd=4)
+  
+  axis(1, at = c(1.8, 2.2), labels = c('Control', expression(paste('CO'[2]))), lty=0, tick=NA, cex.axis=2, las=2)
+  
+  
+  # 2016 
+  foo <- oaa[oaa$species=='acantho' & oaa$loc=='LIRS 2016',]
+  
+  points(activity ~ jitter(as.numeric(treatment)+1.8, 2), data=foo[foo$treatment=='control',], lwd=1, pch=18, col = 'grey40', cex=1.1)
+  points(activity ~ jitter(as.numeric(treatment)+1.2, 2), data=foo[foo$treatment=='CO2',], lwd=1, pch=16, col = 'dodgerblue2')
+  
+  points(x = 2.8, y = mean(foo[foo$treatment=='control',]$activity), cex=2.6, pch=16, col = 'grey40')
+  segments(x0 = 2.8, x1 = 2.8, 
+           y0 = mean(foo[foo$treatment=='control',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)), 
+           y1 = mean(foo[foo$treatment=='control',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)),
+           lwd = 4, col = 'grey40')
+  
+  segments(x0 = 2.65, x1 = 2.95, 
+           y0 = mean(foo[foo$treatment=='control',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)), 
+           y1 = mean(foo[foo$treatment=='control',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)),
+           lwd = 4, col = 'grey40')
+  
+  segments(x0 = 2.65, x1 = 2.95, 
+           y0 = mean(foo[foo$treatment=='control',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)), 
+           y1 = mean(foo[foo$treatment=='control',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)),
+           lwd = 4, col = 'grey40')
+  
+  #points(x = 3.2, y = mean(foo[foo$treatment=='CO2',]$activity), cex=2.6, pch=16, col = 'dodgerblue2')
+  segments(x0 = 3.2, x1 = 3.2, 
+           y0 = mean(foo[foo$treatment=='CO2',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)), 
+           y1 = mean(foo[foo$treatment=='CO2',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)),
+           lwd = 4, col = 'dodgerblue2')
+  
+  segments(x0 = 3.05, x1 = 3.35, 
+           y0 = mean(foo[foo$treatment=='CO2',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)), 
+           y1 = mean(foo[foo$treatment=='CO2',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)),
+           lwd = 4, col = 'dodgerblue2')
+  
+  segments(x0 = 3.05, x1 = 3.35, 
+           y0 = mean(foo[foo$treatment=='CO2',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)), 
+           y1 = mean(foo[foo$treatment=='CO2',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)),
+           lwd = 4, col = 'dodgerblue2')
+  points(x = 3.2, y = mean(foo[foo$treatment=='CO2',]$activity), cex=2.6, pch=21, col = 'dodgerblue2', bg='white', lwd=4)
+  
+  text(1,-3, labels='2014', cex=2)
+  text(2,-3, labels='2015', cex=2)
+  text(3,-3, labels='2016', cex=2)
+  
+  axis(1, at = c(2.8, 3.2), labels = c('Control', expression(paste('CO'[2]))), lty=0, tick=NA, cex.axis=2, las=2)
+  
+  
+  
+  
+  # humbugs
+  plot(NA, ylim=c(-3, ymax), xlim=c(0.4, 2.6), xaxt = 'n', yaxt = 'n')
+  
+  rect(-5000, -5000, 10000, 10000, col='grey92')
+  abline(v = c(0.8, 1.2, 1.8, 2.2), lwd=3.6, col='white')
+  abline(h = c(ylab), lwd=3.6, col='white')
+  
+  
+  #2014
+  
+  foo <- oaa[oaa$species=='humbug' & oaa$loc=='LIRS 2014',]
+  
+  points(activity ~ jitter(as.numeric(treatment)-0.2, 11), data=foo[foo$treatment=='control',], lwd=1, pch=18, col = 'grey40', cex=1.1)
+  points(activity ~ jitter(as.numeric(treatment)-0.8, 5.5), data=foo[foo$treatment=='CO2',], lwd=1, pch=16, col = 'dodgerblue2')
+  
+  #mtext(expression(italic('D. aruanus')), cex=1.5, side=3, line=1)
+  
+  text(0.6, 58, labels = 'B', cex=3.4, font=2)
+  
+  points(x = 0.8, y = mean(foo[foo$treatment=='control',]$activity), cex=2.6, pch=16, col = 'grey40')
+  segments(x0 = 0.8, x1 = 0.8, 
+           y0 = mean(foo[foo$treatment=='control',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)), 
+           y1 = mean(foo[foo$treatment=='control',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)),
+           lwd = 4, col = 'grey40')
+  
+  segments(x0 = 0.65, x1 = 0.95, 
+           y0 = mean(foo[foo$treatment=='control',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)), 
+           y1 = mean(foo[foo$treatment=='control',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)),
+           lwd = 4, col = 'grey40')
+  
+  segments(x0 = 0.65, x1 = 0.95, 
+           y0 = mean(foo[foo$treatment=='control',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)), 
+           y1 = mean(foo[foo$treatment=='control',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)),
+           lwd = 4, col = 'grey40')
+  
+  #points(x = 1.2, y = mean(foo[foo$treatment=='CO2',]$activity), cex=2.6, pch=16, col = 'dodgerblue2')
+  segments(x0 = 1.2, x1 = 1.2, 
+           y0 = mean(foo[foo$treatment=='CO2',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)), 
+           y1 = mean(foo[foo$treatment=='CO2',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)),
+           lwd = 4, col = 'dodgerblue2')
+  
+  segments(x0 = 1.05, x1 = 1.35, 
+           y0 = mean(foo[foo$treatment=='CO2',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)), 
+           y1 = mean(foo[foo$treatment=='CO2',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)),
+           lwd = 4, col = 'dodgerblue2')
+  
+  segments(x0 = 1.05, x1 = 1.35, 
+           y0 = mean(foo[foo$treatment=='CO2',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)), 
+           y1 = mean(foo[foo$treatment=='CO2',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)),
+           lwd = 4, col = 'dodgerblue2')
+  points(x = 1.2, y = mean(foo[foo$treatment=='CO2',]$activity), cex=2.6, pch=21, col = 'dodgerblue2', bg='white', lwd=4)
+  
+  
+  
+  # 2016
+  
+  foo <- oaa[oaa$species=='humbug' & oaa$loc=='LIRS 2016',]
+  
+  points(activity ~ jitter(as.numeric(treatment)+0.8, 3), data=foo[foo$treatment=='control',], lwd=1, pch=18, col = 'grey40', cex=1.1)
+  points(activity ~ jitter(as.numeric(treatment)+0.2, 3), data=foo[foo$treatment=='CO2',], lwd=1, pch=16, col = 'dodgerblue2')
+  
+  
+  points(x = 1.8, y = mean(foo[foo$treatment=='control',]$activity), cex=2.6, pch=16, col = 'grey40')
+  segments(x0 = 1.8, x1 = 1.8, 
+           y0 = mean(foo[foo$treatment=='control',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)), 
+           y1 = mean(foo[foo$treatment=='control',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)),
+           lwd = 4, col = 'grey40')
+  
+  segments(x0 = 1.65, x1 = 1.95, 
+           y0 = mean(foo[foo$treatment=='control',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)), 
+           y1 = mean(foo[foo$treatment=='control',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)),
+           lwd = 4, col = 'grey40')
+  
+  segments(x0 = 1.65, x1 = 1.95, 
+           y0 = mean(foo[foo$treatment=='control',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)), 
+           y1 = mean(foo[foo$treatment=='control',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)),
+           lwd = 4, col = 'grey40')
+  
+  #points(x = 2.2, y = mean(foo[foo$treatment=='CO2',]$activity), cex=2.6, pch=16, col = 'dodgerblue2')
+  segments(x0 = 2.2, x1 = 2.2, 
+           y0 = mean(foo[foo$treatment=='CO2',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)), 
+           y1 = mean(foo[foo$treatment=='CO2',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)),
+           lwd = 4, col = 'dodgerblue2')
+  
+  segments(x0 = 2.05, x1 = 2.35, 
+           y0 = mean(foo[foo$treatment=='CO2',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)), 
+           y1 = mean(foo[foo$treatment=='CO2',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)),
+           lwd = 4, col = 'dodgerblue2')
+  
+  segments(x0 = 2.05, x1 = 2.35, 
+           y0 = mean(foo[foo$treatment=='CO2',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)), 
+           y1 = mean(foo[foo$treatment=='CO2',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)),
+           lwd = 4, col = 'dodgerblue2')
+  points(x = 2.2, y = mean(foo[foo$treatment=='CO2',]$activity), cex=2.6, pch=21, col = 'dodgerblue2', bg='white', lwd=4)
+  
+  
+  text(1,-3, labels='2015', cex=2)
+  text(2,-3, labels='2016', cex=2)
+  
+  axis(1, at = c(1.8, 2.2), labels = c('Control', expression(paste('CO'[2]))), lty=0, tick=NA, cex.axis=2, las=2)
+  axis(1, at = c(0.8, 1.2), labels = c('Control', expression(paste('CO'[2]))), lty=0, tick=NA, cex.axis=2, las=2)
+  
+  
+  
+  # chromis
+  plot(NA, ylim=c(-3, ymax), xlim=c(0.4, 2.6), xaxt = 'n', yaxt = 'n')
+  
+  rect(-5000, -5000, 10000, 10000, col='grey92')
+  abline(v = c(1:2), lwd=3.6, col='white')
+  abline(h = c(ylab), lwd=3.6, col='white')
+  #points(activity ~ jitter(as.numeric(treatment), 1.2), data=oaa[oaa$species=='chromis',], lwd=1, pch=1)
+  foo <- oaa[oaa$species=='chromis',]
+  
+  points(activity ~ jitter(as.numeric(treatment), 10), data=foo[foo$treatment=='control',], lwd=1, pch=18, col = 'grey40', cex=1.1)
+  points(activity ~ jitter(as.numeric(treatment), 5), data=foo[foo$treatment=='CO2',], lwd=1, pch=16, col = 'dodgerblue2')
+  
+  #mtext(expression(italic('C. atripectoralis')), cex=1.5, side=3, line=1)
+  axis(1, at = c(1,2), labels = c('Control', expression(paste('CO'[2]))), lty=0, tick=NA, cex.axis=2, las=2)
+  
+  text(1.5,-3, labels='2014', cex=2)
+  text(0.6, 58, labels = 'C', cex=3.4, font=2)
+  
+  points(x = 1, y = mean(foo[foo$treatment=='control',]$activity), cex=2.6, pch=16, col = 'grey40')
+  segments(x0 = 1, x1 = 1, 
+           y0 = mean(foo[foo$treatment=='control',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)), 
+           y1 = mean(foo[foo$treatment=='control',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)),
+           lwd = 4, col = 'grey40')
+  
+  segments(x0 = 0.8, x1 = 1.2, 
+           y0 = mean(foo[foo$treatment=='control',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)), 
+           y1 = mean(foo[foo$treatment=='control',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)),
+           lwd = 4, col = 'grey40')
+  
+  segments(x0 = 0.8, x1 = 1.2, 
+           y0 = mean(foo[foo$treatment=='control',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)), 
+           y1 = mean(foo[foo$treatment=='control',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)),
+           lwd = 4, col = 'grey40')
+  
+  #points(x = 2, y = mean(foo[foo$treatment=='CO2',]$activity), cex=2.6, pch=16, col = 'dodgerblue2')
+  segments(x0 = 2, x1 = 2, 
+           y0 = mean(foo[foo$treatment=='CO2',]$activity) - qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity), 
+           y1 = mean(foo[foo$treatment=='CO2',]$activity) + qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity),
+           lwd = 4, col = 'dodgerblue2')
+  
+  segments(x0 = 1.8, x1 = 2.2, 
+           y0 = mean(foo[foo$treatment=='CO2',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)), 
+           y1 = mean(foo[foo$treatment=='CO2',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)),
+           lwd = 4, col = 'dodgerblue2')
+  
+  segments(x0 = 1.8, x1 = 2.2, 
+           y0 = mean(foo[foo$treatment=='CO2',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)), 
+           y1 = mean(foo[foo$treatment=='CO2',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)),
+           lwd = 4, col = 'dodgerblue2')
+  points(x = 2, y = mean(foo[foo$treatment=='CO2',]$activity), cex=2.6, pch=21, col = 'dodgerblue2', bg='white', lwd=4)
+  
+  
+  # ambon
+  plot(NA, ylim=c(-3, ymax), xlim=c(0.4, 2.6), xaxt = 'n', yaxt = 'n')
+  
+  rect(-5000, -5000, 10000, 10000, col='grey92')
+  abline(v = c(1:2), lwd=3.6, col='white')
+  abline(h = c(ylab), lwd=3.6, col='white')
+  #points(activity ~ jitter(as.numeric(treatment), 1.2), data=oaa[oaa$species=='ambon',], lwd=1, pch=1)
+  foo <- oaa[oaa$species=='ambon',]
+  
+  points(activity ~ jitter(as.numeric(treatment), 10), data=foo[foo$treatment=='control',], lwd=1, pch=18, col = 'grey40', cex=1.1)
+  points(activity ~ jitter(as.numeric(treatment), 5), data=foo[foo$treatment=='CO2',], lwd=1, pch=16, col = 'dodgerblue2')
+  
+  mtext(expression(italic('P. amboinensis')), cex=1.5, side=3, line=1)
+  axis(1, at = c(1,2), labels = c('Control', expression(paste('CO'[2]))), lty=0, tick=NA, cex.axis=2, las=2)
+  text(1.5,-3, labels='2014', cex=2)
+  text(0.6, 58, labels = 'D', cex=3.4, font=2)
+  
+  
+  points(x = 1, y = mean(foo[foo$treatment=='control',]$activity), cex=2.6, pch=16, col = 'grey40')
+  segments(x0 = 1, x1 = 1, 
+           y0 = mean(foo[foo$treatment=='control',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)), 
+           y1 = mean(foo[foo$treatment=='control',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)),
+           lwd = 4, col = 'grey40')
+  
+  segments(x0 = 0.8, x1 = 1.2, 
+           y0 = mean(foo[foo$treatment=='control',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)), 
+           y1 = mean(foo[foo$treatment=='control',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)),
+           lwd = 4, col = 'grey40')
+  
+  segments(x0 = 0.8, x1 = 1.2, 
+           y0 = mean(foo[foo$treatment=='control',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)), 
+           y1 = mean(foo[foo$treatment=='control',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)),
+           lwd = 4, col = 'grey40')
+  
+  #points(x = 2, y = mean(foo[foo$treatment=='CO2',]$activity), cex=2.6, pch=16, col = 'dodgerblue2')
+  segments(x0 = 2, x1 = 2, 
+           y0 = mean(foo[foo$treatment=='CO2',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)), 
+           y1 = mean(foo[foo$treatment=='CO2',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)),
+           lwd = 4, col = 'dodgerblue2')
+  
+  segments(x0 = 1.8, x1 = 2.2, 
+           y0 = mean(foo[foo$treatment=='CO2',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)), 
+           y1 = mean(foo[foo$treatment=='CO2',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)),
+           lwd = 4, col = 'dodgerblue2')
+  
+  segments(x0 = 1.8, x1 = 2.2, 
+           y0 = mean(foo[foo$treatment=='CO2',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)), 
+           y1 = mean(foo[foo$treatment=='CO2',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)),
+           lwd = 4, col = 'dodgerblue2')
+  points(x = 2, y = mean(foo[foo$treatment=='CO2',]$activity), cex=2.6, pch=21, col = 'dodgerblue2', bg='white', lwd=4)
+  
+  
+  # lemon damsel
+  plot(NA, ylim=c(-3, ymax), xlim=c(0.4, 2.6), xaxt = 'n', yaxt = 'n')
+  
+  rect(-5000, -5000, 10000, 10000, col='grey92')
+  abline(v = c(1:2), lwd=3.6, col='white')
+  abline(h = c(ylab), lwd=3.6, col='white')
+  #points(activity ~ jitter(as.numeric(treatment), 1.2), data=oaa[oaa$species=='lemon',], lwd=1, pch=1)
+  foo <- oaa[oaa$species=='lemon',]
+  
+  points(activity ~ jitter(as.numeric(treatment), 10), data=foo[foo$treatment=='control',], lwd=1, pch=18, col = 'grey40', cex=1.1)
+  points(activity ~ jitter(as.numeric(treatment), 5), data=foo[foo$treatment=='CO2',], lwd=1, pch=16, col = 'dodgerblue2')
+  
+  text(0.6, 58, labels = 'E', cex=3.4, font=2)
+  
+  # mtext(expression(italic('P. moluccensis')), cex=1.5, side=3, line=1)
+  axis(1, at = c(1,2), labels = c('Control', expression(paste('CO'[2]))), lty=0, tick=NA, cex.axis=2, las=2)
+  text(1.5,-3, labels='2014', cex=2)
+  
+  
+  points(x = 1, y = mean(foo[foo$treatment=='control',]$activity), cex=2.6, pch=16, col = 'grey40')
+  segments(x0 = 1, x1 = 1, 
+           y0 = mean(foo[foo$treatment=='control',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)), 
+           y1 = mean(foo[foo$treatment=='control',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)),
+           lwd = 4, col = 'grey40')
+  
+  segments(x0 = 0.8, x1 = 1.2, 
+           y0 = mean(foo[foo$treatment=='control',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)), 
+           y1 = mean(foo[foo$treatment=='control',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)),
+           lwd = 4, col = 'grey40')
+  
+  segments(x0 = 0.8, x1 = 1.2, 
+           y0 = mean(foo[foo$treatment=='control',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)), 
+           y1 = mean(foo[foo$treatment=='control',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)),
+           lwd = 4, col = 'grey40')
+  
+  #points(x = 2, y = mean(foo[foo$treatment=='CO2',]$activity), cex=2.6, pch=16, col = 'dodgerblue2')
+  segments(x0 = 2, x1 = 2, 
+           y0 = mean(foo[foo$treatment=='CO2',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)), 
+           y1 = mean(foo[foo$treatment=='CO2',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)),
+           lwd = 4, col = 'dodgerblue2')
+  
+  segments(x0 = 1.8, x1 = 2.2, 
+           y0 = mean(foo[foo$treatment=='CO2',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)), 
+           y1 = mean(foo[foo$treatment=='CO2',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)),
+           lwd = 4, col = 'dodgerblue2')
+  
+  segments(x0 = 1.8, x1 = 2.2, 
+           y0 = mean(foo[foo$treatment=='CO2',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)), 
+           y1 = mean(foo[foo$treatment=='CO2',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)),
+           lwd = 4, col = 'dodgerblue2')  
+  points(x = 2, y = mean(foo[foo$treatment=='CO2',]$activity), cex=2.6, pch=21, col = 'dodgerblue2', bg='white', lwd=4)
+  
+  
+  
+  # white damsels
+  plot(NA, ylim=c(-3, ymax), xlim=c(0.4, 2.6), xaxt = 'n', yaxt = 'n')
+  
+  rect(-5000, -5000, 10000, 10000, col='grey92')
+  abline(v = c(1:2), lwd=3.6, col='white')
+  abline(h = c(ylab), lwd=3.6, col='white')
+  #points(activity ~ jitter(as.numeric(treatment), 1.2), data=oaa[oaa$species=='whitedams',], lwd=1, pch=1)
+  foo <- oaa[oaa$species=='whitedams',]
+  
+  points(activity ~ jitter(as.numeric(treatment), 10), data=foo[foo$treatment=='control',], lwd=1, pch=18, col = 'grey40', cex=1.1)
+  points(activity ~ jitter(as.numeric(treatment), 5), data=foo[foo$treatment=='CO2',], lwd=1, pch=16, col = 'dodgerblue2')
+  
+  #mtext(expression(italic('D. perspicillatus')), cex=1.5, side=3, line=1)
+  axis(1, at = c(1,2), labels = c('Control', expression(paste('CO'[2]))), lty=0, tick=NA, cex.axis=2, las=2)
+  
+  text(0.6, 58, labels = 'F', cex=3.4, font=2)
+  text(1.5,-3, labels='2016', cex=2)
+  
+  points(x = 1, y = mean(foo[foo$treatment=='control',]$activity), cex=2.6, pch=16, col = 'grey40')
+  segments(x0 = 1, x1 = 1, 
+           y0 = mean(foo[foo$treatment=='control',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)), 
+           y1 = mean(foo[foo$treatment=='control',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)),
+           lwd = 4, col = 'grey40')
+  
+  segments(x0 = 0.8, x1 = 1.2, 
+           y0 = mean(foo[foo$treatment=='control',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)), 
+           y1 = mean(foo[foo$treatment=='control',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)),
+           lwd = 4, col = 'grey40')
+  
+  segments(x0 = 0.8, x1 = 1.2, 
+           y0 = mean(foo[foo$treatment=='control',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)), 
+           y1 = mean(foo[foo$treatment=='control',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='control',]$activity)),
+           lwd = 4, col = 'grey40')
+  
+  #points(x = 2, y = mean(foo[foo$treatment=='CO2',]$activity), cex=2.6, pch=16, col = 'dodgerblue2')
+  segments(x0 = 2, x1 = 2, 
+           y0 = mean(foo[foo$treatment=='CO2',]$activity) - qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity), 
+           y1 = mean(foo[foo$treatment=='CO2',]$activity) + qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity),
+           lwd = 4, col = 'dodgerblue2')
+  
+  segments(x0 = 1.8, x1 = 2.2, 
+           y0 = mean(foo[foo$treatment=='CO2',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)), 
+           y1 = mean(foo[foo$treatment=='CO2',]$activity) - (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)),
+           lwd = 4, col = 'dodgerblue2')
+  
+  segments(x0 = 1.8, x1 = 2.2, 
+           y0 = mean(foo[foo$treatment=='CO2',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)), 
+           y1 = mean(foo[foo$treatment=='CO2',]$activity) + (qnorm(0.975)*std.error(foo[foo$treatment=='CO2',]$activity)),
+           lwd = 4, col = 'dodgerblue2')
+  points(x = 2, y = mean(foo[foo$treatment=='CO2',]$activity), cex=2.6, pch=21, col = 'dodgerblue2', bg='white', lwd=4)
+  
+
+```
+

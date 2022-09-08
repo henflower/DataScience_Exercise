@@ -1,6 +1,6 @@
 ---
 title: "Git, GitHub & Ocean Acidification"
-author: "<your name and u number>"
+author: "Jinghua Mu u7457359"
 date: "`r Sys.Date()`"
 output: 
   bookdown::html_document2:
@@ -24,8 +24,8 @@ This tutorial will draw on the skills you have already learnt on data visualisat
 Use this Rmarkdown file as your template to complete the tasks outlined within the instructions. There are questions asked in the instructions and here in the RMarkdown file. Answer these as best as you can to document your steps and thinking. There are also a series of coding exercises.
 Throughout we are also going to learn a bit more about how to format Rmarkdown documents. So, pay close attention to the formatting. We're also going to make use of the `bookdown` package now to render your Rmarkdown because, well, it's quite elegant in many ways. Before you start the tasks install the following packages:
 ```{r loadpacks, results='hide', message=FALSE}
-# Install a load of packages that we'll use. I'll show you a shortcut that I love to use. Try using the p_load function in the "pacman" package. p_load will execute both the install.packages and library commands in one shot so they only need to be used once to install pacman itself.
-install.packages("pacman", repos = "http://cran.us.r-project.org")
+# # Install a load of packages that we'll use. I'll show you a shortcut that I love to use. Try using the p_load function in the "pacman" package. p_load will execute both the install.packages and library commands in one shot so they only need to be used once to install pacman itself.
+# install.packages("pacman", repos = "http://cran.us.r-project.org")
 library(pacman)
 
 # Install bookdown for rendering because we'll need this. While we're at it, lets also install /load the tidyverse
@@ -47,7 +47,7 @@ By adding the link in the `()` brackets it will hyperlink "My GitHub Repository"
 
 This task involves cloning your repository on your computer. Where should we place this repository? While GitHub is somewhat of a cloud storage system because it's keeping record of your commits, files and changes in the cloud it is **not** a backup of your files (note that placing `**` around a word will bold it whereas `*` around a word will italicise it). The lack of *GitHub* being a file backup system is important to recognise!
 
-> **Question 1**: Why should you not rely on *GitHub* as a backup?
+> **Question 1**: Why should you not rely on *GitHub* as a backup? 
 
 ```{r answer1, echo=TRUE, eval=FALSE}
 # The role of GitHub is to centrally host different versions and branches and form the master version. 
@@ -116,14 +116,13 @@ First, write some code below to remove missing data
 ```{r rmMiss}
 # Code to removing missing data from the `OA_activitydat_20190302_BIOL3207.csv` data frame. 
 data = data %>% drop_na() %>% select(-...1)
-
 ```
 
 Second, drop out irrelevant columns and check that there are no spelling issues in `species` and `treatment`. Create a table of summary data that includes: 1) the mean, 2) the standard error and 3) the sample sizes of unique fish across ALL six fish species for each treatment. This will also help you detect any spelling errors. You can use the R package [`flextable`](https://ardata-fr.github.io/flextable-book/) to print out the results in a nice neat format! If you haven't heard about `flextable` spend 10 or so minutes having a look at it's functionality. It's incredible! You'll use this for tables throughout.
 
 ```{r summaryTab}
 # Drop irrelevant columns
-datase <- data %>% select(-comment,-loc, -animal_id)
+datase <- data %>% select(-comment, -animal_id)
 # Check spelling in species and treatment but also generate a summary table
 datast <- datase %>% filter(!is.na(species)) %>% filter(!is.na(treatment)) %>% 
    group_by(species,treatment) %>% summarise(across(where(is.numeric),list(mean = mean,sd = sd))) %>% 
@@ -151,8 +150,8 @@ Ignoring figures can be important because they take up quite a lot of space in y
 
 ```{r prettyfig, fig.align="center", fig.cap="add a legend here"}
 # ggplot figure showing mean activity for each treatment (Control, OA) for each species.
-datase %>% ggplot(aes(y = activity)) + geom_histogram(aes(fill = treatment), binwidth = 3) + facet_wrap(~species) 
-ggsave("./.gitignore/output/figures/stat_all.png")
+datase %>% ggplot(aes(x = treatment, y = activity)) + geom_boxplot(aes(fill = loc)) + facet_wrap(~species) 
+ggsave("./output/figures/stat_all.png")
 ```
 
 **Stretch Task**: The Clark et al. 2020 paper plots some pretty pictures on their figures. You have access to a folder called "pics/". Add the pics of the difference species from the "pics/" folder to your new plot. Explore the function `annotation_raster()` which might help you achieve this goal.
@@ -165,9 +164,9 @@ Now that you have the figure you may also want to write / save it as a separate 
 #Use ggsave to save the figure
 for (i in unique(datase$species)){
    fish = readPNG(str_c("./pics/",i,".png"))
-   datase[which(datase$species == i),] %>% ggplot(aes(x = activity)) + ylim(0,10) + xlim(0,75) +
-   annotation_raster(fish, xmin = 0, xmax = 25, ymin = 8.5, ymax = 10) + geom_histogram(aes(fill = treatment),binwidth = 3)
-   ggsave(str_c("./.gitignore/output/figures/stat_",i,".png"))
+   datase[which(datase$species == i),] %>% ggplot(aes(x = treatment, y = activity))+ ylim(0,70) +
+   annotation_raster(fish, xmin = 1.8, xmax = 2.5, ymin = 60, ymax = 70) + geom_boxplot(aes(fill = loc)) 
+    ggsave(str_c("./output/figures/stat_",i,".png"))
 }
 ```
 
@@ -282,7 +281,7 @@ for (group in unique(datase$species)){
    permutation_result <- rbind(permutation_result, tibble(species = group,P_value = permutation_pvalue))
 }
 colnames(permutation_result) <- c("species","Per-P.value")
-stat_result <- full_join(permutation_result，stat_activity)
+stat_result <- full_join(permutation_result, stat_activity)
 stat_result
 ```
 
