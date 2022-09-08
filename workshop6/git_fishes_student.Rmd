@@ -39,7 +39,7 @@ p_load(bookdown, tidyverse, ggforce, flextable, latex2exp, png, magick) # basica
 
 While the tasks are meant to get you familiar with how *GitHub* works you should try and make regular commits as you work your way through. We want to see how often you're using *Git*. Below, within the `()` brackets provide the link to your GitHub Repo. Just cut and paste it so we know what the repo name is and where it is.
 
-[My GitHub Repository]()
+[My GitHub Repository](https://github.com/henflower/DataScience_Exercise/tree/main/workshop6)
 
 By adding the link in the `()` brackets it will hyperlink "My GitHub Repository". This is how to hyperlink in Rmarkdown documents.
 
@@ -169,7 +169,7 @@ for (i in unique(datase$species)){
 
 > **Question 6**: Given that you have added `output/figures/` to your `.gitignore` file describe what you notice about what you see in *GitHub Desktop*.
 
-```{r, answerQ6, echo=TRUE, eval=FALSE}
+```{r answerQ6, echo=TRUE, eval=FALSE}
 Using output/ will block all folders with the same location name, but files already uploaded to output/ will not be deleted.
 ```
 
@@ -188,7 +188,7 @@ This task involves teaming up with a collaborator. Exchange *GitHub* username de
 
 Now, lets create a new figure in the code block below that simplifies the one produced in **Task 5**. Instead of all species, lets just plot three of the species (chromis, lemon, and acantho). In the figure code chunk make sure you add the necessary arguments (e.g., `fig.cap`) so that you can refer to Figure \@ref(fig:collabFig).
 
-```{r collabFig,fig.cap= "collaborate", echo=TRUE, eval=TRUE}
+```{r collabFig, fig.cap="collaborate", echo=TRUE, eval=TRUE}
 # You want to make changes to your collaborators figure in Task 5. Maybe you want to create a figure that focuses only on three fish species instead of the 5. More specifically, chromis, lemon, and acantho. Add code here to revise their figure to do that.
 datase %>% filter(species == c("chromis","lemon","acantho")) %>% ggplot(aes(x = treatment, y = activity, fill = treatment)) +
   geom_violin(trim = F) +facet_wrap(~species)+
@@ -201,17 +201,15 @@ datase %>% filter(species == c("chromis","lemon","acantho")) %>% ggplot(aes(x = 
 # **Task 7**
 
 This task involves creating and resolving conflicts. Conflicts in files are denoted with specific markers. They look like this when you open a file with conflicts.
-
-\<\<\<\<\<\<\<\<\< HEAD
-
-THIS IS YOUR CODE
-
-==============
-
-THIS IS YOUR PARTNERS CODE
-
-!\>\>\>\>\>\>\>\>928731027301723
-
+```
+<<<<<<< HEAD
+datase %>% ggplot(aes(x = treatment, y = activity)) + geom_boxplot(aes(fill = loc)) + facet_wrap(~species) + theme_bw()+ xlab('Species') + ylab('Activity (s)')+ ggtitle("Activity distribution in different treatment for each species")
+ggsave("./output/figures/stat_all.png")
+=======
+datase %>% ggplot(aes(x = treatment, y = activity)) + geom_boxplot(aes(fill = loc)) + facet_wrap(~species) 
+ggsave("./output/figures/stat.png")
+>>>>>>> 31da982a7d0fb657443abdab06af3fe853e5abaf
+```
 Resolving is easy. Decide on what changes you think are the best to proceed with and remove conflict markers.
 
 > **Stretch Task**: Try creating another conflict in the `collabFig` code chunk of the Rmarkdown file. Resolve the conflict again. More practice doing this is always good!
@@ -295,3 +293,4 @@ After `r n_rep` permutation tests, the permutation test for the lemon group gave
 # **Task 10**
 
 This is a stretch task on the use of *GitHub* and the challenges (or maybe lack of challenges) of reproducing others' work. If you finish the above tasks, then, have a crack at this one. See the html for details.
+[My index.html]

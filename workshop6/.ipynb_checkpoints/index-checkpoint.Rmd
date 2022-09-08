@@ -12,7 +12,7 @@ output:
 ---
 ### **Question 9**: 
 Think about some things that can be improved in their code. List 3 things you think could be improved and provide a brief explanation for why.  
-**MY ANSWER**
+**ANSWER**
 1. Using raw R script without rmarkdown makes it less readable between comments and code, and makes it impossible to run only parts of the code to make changes.
 2. Using the original R package for plotting results in a huge amount of code and very low readability, making it difficult to identify the plotting process and statistical methods.
 3. Doing a lot of statistical testing before plotting produces a lot of useless information. And because individual pieces of information aren't combined into tables, it's hard to compare different results.
@@ -25,6 +25,7 @@ Think about some things that can be improved in their code. List 3 things you th
 
 # import data
 oaa <- read.csv('./OA_activitydat_20190302_BIOL3207.csv', header=TRUE)
+oaa
 # library(car)
 # library(MASS)
 ```
@@ -515,35 +516,36 @@ library(plotrix)
            lwd = 4, col = 'dodgerblue2')
   points(x = 2, y = mean(foo[foo$treatment=='CO2',]$activity), cex=2.6, pch=21, col = 'dodgerblue2', bg='white', lwd=4)
   
-```
 
-### My own try
-```{r fig2, fig.height=8, fig.width= 20}
-library(tidyverse)
+```
+```{r}
 library(patchwork)
 q25 <-function(x){quantile(x,0.25)}
 q75 <-function(x){quantile(x,0.75)}
-oaa$loc = as.factor(oaa$loc)
-oaa$loc = factor(oaa$loc, labels = c("15","14","16"))
-oaa$treatment <- factor(as.factor(oaa$treatment), labels = c("C","T"))
 pic <- function(selecting, notfirst = TRUE){
-    data <- oaa %>% filter(species == selecting) %>% drop_na() %>% select(-comment,-X)
-    data1 <- data %>% mutate(treat = treatment) %>% unite(col = "group", c(loc, treat), sep = "")
+    data <- oaa %>% filter(species == selecting) %>% drop_na() %>% select(-comment,-X) 
+    data1 <- data %>% mutate(treat = treatment) %>% unite(col = "group", c(loc, treatment), sep = "-")
     stat <- data %>% group_by(loc,treatment) %>% summarise(mean = mean(activity), q25 = q25(activity),q75 = q75(activity),.groups = "drop") %>% mutate(treat = treatment) %>% 
-    unite(col = "group", c(loc, treat), sep = "")
-    p1 <- ggplot(data = data1,aes(x = group, colour = treatment)) + geom_blank(aes(y = activity)) + geom_jitter(aes(y = activity), width = 0.25) + 
+    unite(col = "group", c(loc, treatment), sep = "-")
+    p1 <- ggplot(data = data1,aes(x = group, colour = treat)) + geom_blank(aes(y = activity)) + geom_jitter(aes(y = activity), width = 0.25) + 
     geom_errorbar(data = stat, aes(ymin = q25, ymax = q75),width = 0.1, position = position_dodge2(width = 0.5, padding = 0.5)) +
-    geom_point(data = stat, aes(x = group, y = mean),size = 3,shape = 21,stroke = 2) + theme(legend.position = "left", plot.title = element_text(margin = margin())) + xlab(selecting) +ylim(c(0,60))
+    geom_point(data = stat, aes(x = group, y = mean),size = 3,shape = 21,stroke = 2) + theme(legend.position = "left", axis.text.y = element_blank(), plot.title = element_text(margin = margin()))
     if (notfirst == TRUE){
-    p1 <- p1 + theme(legend.position="none", axis.text.y = element_blank()) + ylab(NULL) 
+    p1 <- p1 + theme(legend.position="none", axis.text.y = element_blank()) + ylab(NULL)
     }
     p1
 }
+unique(oaa$species)
 pic("acantho", notfirst = FALSE) | pic('lemon') |pic('chromis') | pic('acantho') | pic('humbug') | pic('whitedams')
+
 ```
 
-### **Question 10**
-What are the challenges, if any, that you encounter in reproducing this figure?
-**MY ANSWER**
-1. On the native ggplot, it is difficult to achieve two groupings at the same time on one drawing and label them on different levels of labels, so I can only group them in sequence instead.
-2. The function of the `patchwork` package is too simple to set the specific width of each image, and it is not compatible with the image output size setting of rmarkdown, so it is difficult to draw images of the appropriate scale.
+
+
+```{r}
+
+```
+
+```{r}
+
+```

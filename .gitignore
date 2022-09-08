@@ -1,4 +1,5 @@
 output/
+!pics/s
 *.jpg
 *.png
 *.pdf
