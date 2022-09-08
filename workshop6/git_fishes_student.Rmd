@@ -122,15 +122,12 @@ Second, drop out irrelevant columns and check that there are no spelling issues 
 
 ```{r summaryTab}
 # Drop irrelevant columns
-datase <- data %>% select(-comment, -animal_id)
+datase <- data %>% select(-comment)
 # Check spelling in species and treatment but also generate a summary table
 datast <- datase %>% filter(!is.na(species)) %>% filter(!is.na(treatment)) %>% 
-   group_by(species,treatment) %>% summarise(across(where(is.numeric),list(mean = mean,sd = sd))) %>% 
-   ungroup() %>% pivot_longer(cols = !c(species,treatment),names_to = c("variable","statistic"),
-               names_pattern = "(.*)_(.*)",values_to = "value")
+   group_by(species,treatment) %>% summarise(across(c(sl,activity),list(mean = mean,sd = sd)),size = length(unique(animal_id)), .groups = "drop")
 # Use flextable to render the summary table in a tidy format
-flextable(datast) %>% bold(part = "header") %>% add_footer_lines("The statistic of species-treatment")
-
+flextable(datast) %>% bold(part = "header") %>% vline(j = c("treatment","sl_sd","activity_sd")) %>% add_header_row(values = c("group","sl","activity","sample"),colwidth = c(2,2,2,1)) %>% set_header_labels(sl_mean = "mean",sl_sd ="std",activity_mean = "mean",activity_sd = "std") %>% add_header_lines("The statistic of species-treatment")
 ```
 
 **STOP**: Before moving on, it's a good time to establish some good *GitHub* practices. You have just done an important step. It's time to save this file, stage it and commit it so that you have a record. Push these changes up using *GitHub Desktop*. It's important to do this frequently. It's probably not needed after every line of code, but it's good to do this when you have completed an important coding step. Of course, there's no harm in doing it more often. It will provide fine-scale tracking for you!
@@ -138,8 +135,8 @@ flextable(datast) %>% bold(part = "header") %>% add_footer_lines("The statistic 
 > **Question 5**: The new version of your Rmarkdown file should now be up on *GitHub*. In the browser window click on your most recent commit. Have a look at the file versioning system. You will notice two files side-by-side. Describe what you notice is being presented online. What do the red and green highlights mean?
 
 ```{r answer5, echo=TRUE, eval=FALSE}
-# You can see the comparison between the local content and the content on Github,
-#where green represents the added content, and red represents the modified and deleted content.
+You can see the comparison between the local content and the content on Github,
+where green represents the added content, and red represents the modified and deleted content.
 ```
 
 # **Task 5**
