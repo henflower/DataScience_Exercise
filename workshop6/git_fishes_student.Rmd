@@ -151,7 +151,7 @@ Ignoring figures can be important because they take up quite a lot of space in y
 ```{r prettyfig, fig.align="center", fig.cap="add a legend here"}
 # ggplot figure showing mean activity for each treatment (Control, OA) for each species.
 datase %>% ggplot(aes(x = treatment, y = activity)) + geom_boxplot(aes(fill = loc)) + facet_wrap(~species) 
-ggsave("./output/figures/stat_all.png")
+ggsave("./output/figures/stat.png")
 ```
 
 **Stretch Task**: The Clark et al. 2020 paper plots some pretty pictures on their figures. You have access to a folder called "pics/". Add the pics of the difference species from the "pics/" folder to your new plot. Explore the function `annotation_raster()` which might help you achieve this goal.
@@ -193,11 +193,11 @@ Now, lets create a new figure in the code block below that simplifies the one pr
 
 ```{r collabFig, echo=TRUE, eval=TRUE}
 # You want to make changes to your collaborators figure in Task 5. Maybe you want to create a figure that focuses only on three fish species instead of the 5. More specifically, chromis, lemon, and acantho. Add code here to revise their figure to do that.
-libaray(tidyverse)
-data = data %>% drop_na() %>% select(-...1)
-path <- "../data/OA_activitydat_20190302_BIOL3207.csv"
+library(tidyverse)
+data = data %>% drop_na() 
+path <- "./data/OA_activitydat_20190302_BIOL3207.csv"
 data <- read_csv(path)
-data %>% ggplot(aes(x = treatment, y = activity)) + geom_boxplot(aes(fill = loc)) + facet_wrap(~species) 
+data %>% filter(species==c("chromis","lemon","acantho"))%>% ggplot(aes(x = treatment, y = activity)) + geom_boxplot(aes(fill = loc)) + facet_wrap(~species) 
 ```
 
 # **Task 7**
